@@ -37,7 +37,7 @@ class @WebApp
 
     @home_page = {}
 
-    @languages = ["en","fr","pl","de","it","pt","ru","es"]
+    @languages = ["en","fr","pl","de","it","pt","ru","es","ja"]
     home_exp = "^(\\/"
     for i in [1..@languages.length-1] by 1
       home_exp += "|\\/#{@languages[i]}\\/?"
@@ -62,7 +62,6 @@ class @WebApp
 
     @app.get new RegExp(home_exp), (req,res)=>
       return if @ensureDevArea(req,res)
-      return @return429(req,res) if not @server.rate_limiter.accept("page_load_ip",req.ip)
 
       dev_domain = if @server.config.dev_domain then "'#{@server.config.dev_domain}'" else "location.origin"
       run_domain = if @server.config.run_domain then "'#{@server.config.run_domain}'" else "location.origin.replace('.dev','.io')"
@@ -244,8 +243,6 @@ class @WebApp
 
     # /user/project[/code/]
     @app.get /^\/[^\/\|\?\&\.]+\/[^\/\|\?\&\.]+(\/([^\/\|\?\&\.]+\/?)?)?$/,(req,res)=>
-      return @return429(req,res) if not @server.rate_limiter.accept("page_load_ip",req.ip)
-
       access = @getProjectAccess req,res
       if not access?
         return  # 404 is already sent
@@ -628,9 +625,6 @@ class @WebApp
       @err404_funk = pug.compileFile "../templates/404.pug"
 
     res.status(404).send @err404_funk {}
-
-  return429:(req,res)->
-    res.status(429).send "Too many requests"
 
   ensureDevArea:(req,res)->
     #console.info req.get("host")

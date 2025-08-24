@@ -47,7 +47,7 @@ this.WebApp = class WebApp {
     this.export_features = new ExportFeatures(this);
     this.server.build_manager.createLinks(this.app);
     this.home_page = {};
-    this.languages = ["en", "fr", "pl", "de", "it", "pt", "ru", "es"];
+    this.languages = ["en", "fr", "pl", "de", "it", "pt", "ru", "es", "ja"];
     home_exp = "^(\\/";
     for (i = j = 1, ref = this.languages.length - 1; j <= ref; i = j += 1) {
       home_exp += `|\\/${this.languages[i]}\\/?`;
@@ -74,9 +74,6 @@ this.WebApp = class WebApp {
       var dev_domain, l, lang, len2, n, page, project, ref3, run_domain, s, translator, user;
       if (this.ensureDevArea(req, res)) {
         return;
-      }
-      if (!this.server.rate_limiter.accept("page_load_ip", req.ip)) {
-        return this.return429(req, res);
       }
       dev_domain = this.server.config.dev_domain ? `'${this.server.config.dev_domain}'` : "location.origin";
       run_domain = this.server.config.run_domain ? `'${this.server.config.run_domain}'` : "location.origin.replace('.dev','.io')";
@@ -285,9 +282,6 @@ this.WebApp = class WebApp {
     // /user/project[/code/]
     this.app.get(/^\/[^\/\|\?\&\.]+\/[^\/\|\?\&\.]+(\/([^\/\|\?\&\.]+\/?)?)?$/, (req, res) => {
       var access, embedder_policy, encoding, file, jsfiles, l, len3, lib, manager, o, pathcode, poster, prog_lang, project, redir, ref4, user;
-      if (!this.server.rate_limiter.accept("page_load_ip", req.ip)) {
-        return this.return429(req, res);
-      }
       access = this.getProjectAccess(req, res);
       if (access == null) { // 404 is already sent
         return;
@@ -731,10 +725,6 @@ this.WebApp = class WebApp {
       this.err404_funk = pug.compileFile("../templates/404.pug");
     }
     return res.status(404).send(this.err404_funk({}));
-  }
-
-  return429(req, res) {
-    return res.status(429).send("Too many requests");
   }
 
   ensureDevArea(req, res) {
